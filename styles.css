@@ -1,0 +1,717 @@
+/* ==========================================================================
+   styles.css — Стилі інтерфейсу «Планувальник подій» (Варіант 17)
+   Суворо за вимогами розділу 1.4.2 (Крок 3):
+   - Адаптивний макет засобами Flexbox та CSS Grid
+   - Клас .invalid для валідації форми
+   - Мінімалістичний чистий дизайн без зайвого шуму
+   ========================================================================== */
+
+:root {
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  --border-subtle: #e2e8f0;
+  --border-input: #cbd5e1;
+  --primary-accent: #e11d48; /* Фірмовий коралово-рожевий акцент з референсу */
+  --primary-accent-hover: #be123c;
+  --danger-color: #dc2626;
+  --danger-bg: #fef2f2;
+  --radius-card: 16px;
+  --radius-sm: 8px;
+  --radius-full: 9999px;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   1. ШАПКА (<header>) — Крок 2, Контрольне питання №1, №3 (Flexbox)
+   ========================================================================== */
+.site-header {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 1.15rem 1.5rem;
+}
+
+.header-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.app-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
+.app-accent {
+  color: var(--primary-accent);
+}
+
+.app-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   2. ГОЛОВНИЙ МАКЕТ (CSS Grid: 2 колонки) — Контрольне питання №3
+   ========================================================================== */
+.main-layout {
+  flex: 1;
+  max-width: 1240px;
+  width: 100%;
+  margin: 1.75rem auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   3. ФОРМА ДОДАВАННЯ/РЕДАГУВАННЯ — Крок 2, 3, 5 методички
+   ========================================================================== */
+.form-section {
+  position: sticky;
+  top: 1.5rem;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  color: var(--text-main);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  background-color: #ffffff;
+  color: var(--text-main);
+  transition: border-color 0.15s ease;
+}
+
+.form-input:focus {
+  border-color: var(--primary-accent);
+}
+
+/* Крок 3, 5 методички: індикація помилки валідації через клас .invalid */
+.form-input.invalid {
+  border-color: var(--danger-color) !important;
+  background-color: var(--danger-bg);
+}
+
+.field-error-text {
+  font-size: 0.75rem;
+  color: var(--danger-color);
+  font-weight: 500;
+  display: none;
+  margin-top: 0.15rem;
+}
+
+.field-error-text.show {
+  display: block;
+}
+
+.form-textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+/* ==========================================================================
+   4. ПАНЕЛЬ ПОШУКУ ТА ФІЛЬТРІВ (Крок 2, 9 методички)
+   ========================================================================== */
+.events-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.toolbar-box {
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.search-icon-svg {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  pointer-events: none;
+}
+
+.search-input-field {
+  width: 100%;
+  padding: 0.6rem 0.85rem 0.6rem 2.3rem;
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.search-input-field:focus {
+  border-color: var(--primary-accent);
+}
+
+.filter-controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dropdown-select {
+  appearance: none;
+  background-color: #ffffff;
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 2rem 0.6rem 0.85rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-main);
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+}
+
+.dropdown-select:focus {
+  border-color: var(--primary-accent);
+}
+
+/* ==========================================================================
+   5. СІТКА КАРТОК ПОДІЙ — Контрольне питання №3 (CSS Grid)
+   ========================================================================== */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+/* ==========================================================================
+   6. КАРТКА ПОДІЇ (.entity-item, .event-card) — Крок 3, 7 методички
+   ========================================================================== */
+.entity-item {
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  display: flex;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.entity-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.06);
+}
+
+/* Блок дати (пастельні кольори) */
+.event-date-box {
+  width: 95px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 0.5rem;
+  text-align: center;
+}
+
+.date-month {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.date-day {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  margin: 0.25rem 0;
+}
+
+.date-time {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   КОЛЬОРИ ЗА КАТЕГОРІЯМИ ТА МІСЯЦЯМИ (Точно як на референсі Image 2)
+   JUN / Саміт / Відпочинок — Рожевий
+   MAR / Конференція / Навчання — Фіолетовий
+   MAY / Воркшоп — Зелений
+   NOV / Експо / Робота — Синій
+   OCT / Особисте — Помаранчевий
+   ========================================================================== */
+
+/* 1. РОЖЕВИЙ (Червень / Summit / Відпочинок) */
+.card-theme-summit, .card-theme-leisure, [data-month="6"] { border-color: #fce7f3; }
+.card-theme-summit:hover, .card-theme-leisure:hover, [data-month="6"]:hover { border-color: #f43f5e; box-shadow: 0 10px 25px -4px rgba(225, 29, 72, 0.12); }
+.card-theme-summit .event-date-box, .card-theme-leisure .event-date-box, [data-month="6"] .event-date-box { background-color: #fdf2f4 !important; border-right: none !important; }
+.card-theme-summit .date-month, .card-theme-summit .date-day,
+.card-theme-leisure .date-month, .card-theme-leisure .date-day,
+[data-month="6"] .date-month, [data-month="6"] .date-day { color: #e11d48 !important; }
+.card-theme-summit .badge-tag, .card-theme-leisure .badge-tag, [data-month="6"] .badge-tag { background-color: #ffe4e6 !important; color: #be123c !important; border: none !important; }
+
+/* 2. ФІОЛЕТОВИЙ (Березень / Conference / Навчання) */
+.card-theme-conference, .card-theme-study, [data-month="3"] { border-color: #ede9fe; }
+.card-theme-conference:hover, .card-theme-study:hover, [data-month="3"]:hover { border-color: #a78bfa; box-shadow: 0 10px 25px -4px rgba(124, 58, 237, 0.12); }
+.card-theme-conference .event-date-box, .card-theme-study .event-date-box, [data-month="3"] .event-date-box { background-color: #f5f3ff !important; border-right: none !important; }
+.card-theme-conference .date-month, .card-theme-conference .date-day,
+.card-theme-study .date-month, .card-theme-study .date-day,
+[data-month="3"] .date-month, [data-month="3"] .date-day { color: #7c3aed !important; }
+.card-theme-conference .badge-tag, .card-theme-study .badge-tag, [data-month="3"] .badge-tag { background-color: #ede9fe !important; color: #7c3aed !important; border: none !important; }
+
+/* 3. ЗЕЛЕНИЙ (Травень / Workshop) */
+.card-theme-workshop, [data-month="5"] { border-color: #dcfce7; }
+.card-theme-workshop:hover, [data-month="5"]:hover { border-color: #86efac; box-shadow: 0 10px 25px -4px rgba(22, 163, 74, 0.12); }
+.card-theme-workshop .event-date-box, [data-month="5"] .event-date-box { background-color: #f0fdf4 !important; border-right: none !important; }
+.card-theme-workshop .date-month, .card-theme-workshop .date-day,
+[data-month="5"] .date-month, [data-month="5"] .date-day { color: #16a34a !important; }
+.card-theme-workshop .badge-tag, [data-month="5"] .badge-tag { background-color: #dcfce7 !important; color: #15803d !important; border: none !important; }
+
+/* 4. СИНІЙ (Листопад / Expo / Робота) */
+.card-theme-expo, .card-theme-work, [data-month="11"] { border-color: #e0f2fe; }
+.card-theme-expo:hover, .card-theme-work:hover, [data-month="11"]:hover { border-color: #60a5fa; box-shadow: 0 10px 25px -4px rgba(37, 99, 235, 0.12); }
+.card-theme-expo .event-date-box, .card-theme-work .event-date-box, [data-month="11"] .event-date-box { background-color: #eff6ff !important; border-right: none !important; }
+.card-theme-expo .date-month, .card-theme-expo .date-day,
+.card-theme-work .date-month, .card-theme-work .date-day,
+[data-month="11"] .date-month, [data-month="11"] .date-day { color: #2563eb !important; }
+.card-theme-expo .badge-tag, .card-theme-work .badge-tag, [data-month="11"] .badge-tag { background-color: #dbeafe !important; color: #1d4ed8 !important; border: none !important; }
+
+/* 5. ПОМАРАНЧЕВИЙ (Жовтень / Особисте) */
+.card-theme-personal, [data-month="10"] { border-color: #ffedd5; }
+.card-theme-personal:hover, [data-month="10"]:hover { border-color: #fb923c; box-shadow: 0 10px 25px -4px rgba(234, 88, 12, 0.12); }
+.card-theme-personal .event-date-box, [data-month="10"] .event-date-box { background-color: #fff7ed !important; border-right: none !important; }
+.card-theme-personal .date-month, .card-theme-personal .date-day,
+[data-month="10"] .date-month, [data-month="10"] .date-day { color: #ea580c !important; }
+.card-theme-personal .badge-tag, [data-month="10"] .badge-tag { background-color: #ffedd5 !important; color: #c2410c !important; border: none !important; }
+
+/* Правий блок опису */
+.event-content-box {
+  flex: 1;
+  padding: 1.15rem 1.15rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.event-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.3;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.btn-icon:hover {
+  background-color: #f1f5f9;
+  color: var(--text-main);
+}
+
+.delete-btn:hover {
+  color: #dc2626;
+  background-color: #fee2e2;
+}
+
+.icon-svg {
+  display: block;
+  pointer-events: none;
+}
+
+/* Бейдж типу події */
+.badge-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  border: none !important;
+  margin: 0.5rem 0 0.75rem;
+  width: fit-content;
+}
+
+/* Локація */
+.card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.event-location {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.location-svg {
+  color: var(--text-light);
+  flex-shrink: 0;
+}
+
+/* Порожній стан */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  background-color: #ffffff;
+  border: 1px dashed var(--border-input);
+  border-radius: var(--radius-card);
+}
+
+.empty-state h3 {
+  font-size: 1.15rem;
+  margin-bottom: 0.35rem;
+}
+
+.empty-state p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ==========================================================================
+   7. КНОПКИ
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 1.15rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background-color: var(--primary-accent);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-accent-hover);
+}
+
+.btn-secondary {
+  background-color: #f1f5f9;
+  color: var(--text-main);
+  border-color: var(--border-input);
+}
+
+.btn-secondary:hover {
+  background-color: #e2e8f0;
+}
+
+/* ==========================================================================
+   8. СПЛИВАЮЧІ СПОВІЩЕННЯ (Toast) — Варіант 17
+   ========================================================================== */
+.toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toast {
+  background: #ffffff;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-subtle);
+  padding: 0.85rem 1.25rem;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  animation: slideToast 0.25s ease-out;
+  border-left: 4px solid var(--primary-accent);
+}
+
+@keyframes slideToast {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.toast-success { border-left-color: #16a34a; }
+.toast-error { border-left-color: #dc2626; }
+.toast-info { border-left-color: #2563eb; }
+
+/* ==========================================================================
+   9. ПІДВАЛ (<footer>)
+   ========================================================================== */
+.site-footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: 1.25rem 1.5rem;
+  background: #ffffff;
+  font-size: 0.82rem;
+  color: var(--text-light);
+  margin-top: auto;
+}
+
+.footer-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ==========================================================================
+   10. АДАПТИВНІСТЬ ПІД МОБІЛЬНІ ПРИСТРОЇ (Media Queries)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .site-header {
+    padding: 0.85rem 1rem;
+  }
+
+  .header-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .app-title {
+    font-size: 1.35rem;
+  }
+
+  .app-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .main-layout {
+    padding: 1rem 0.75rem 2rem;
+    gap: 1.25rem;
+  }
+
+  .form-section {
+    position: static; /* Відключаємо sticky на мобільних */
+  }
+
+  .card.form-card {
+    padding: 1.15rem;
+  }
+
+  /* Тулбар на телефонах: пошук зверху, фільтри в один рядок */
+  .toolbar-box {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.85rem;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .filter-controls {
+    display: flex;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .filter-controls .dropdown-select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Список подій на всю ширину екрану */
+  .events-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  /* Зручні для тапу розміри полів введення (WCAG Touch Targets) */
+  .form-input,
+  .search-input-field,
+  .dropdown-select,
+  .btn {
+    min-height: 44px;
+    font-size: 0.95rem;
+  }
+
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Підвал на мобільних */
+  .site-footer {
+    padding: 1rem 0.75rem;
+  }
+
+  .footer-container {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.35rem;
+  }
+
+  /* Toast-сповіщення по центру знизу */
+  .toast-container {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    align-items: stretch;
+  }
+
+  .toast {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 520px) {
+  /* Перевід парних полів форми (Дата/Час, Тип/Місце) у вертикальний стек */
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .card-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .card-actions {
+    align-self: flex-end;
+    margin-top: -1.75rem;
+  }
+
+  .event-date-box {
+    width: 66px;
+    padding: 0.85rem 0.35rem;
+  }
+
+  .date-day {
+    font-size: 1.45rem;
+  }
+
+  .date-month {
+    font-size: 0.75rem;
+  }
+
+  .event-content-box {
+    padding: 0.85rem;
+  }
+
+  .filter-controls {
+    flex-direction: column;
+  }
+}
+

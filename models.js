@@ -1,13 +1,9 @@
-// ================================================
-// models.js — Класи предметної області (ES6+)
-// Крок 4 методички: Event, EventPlanner, NotificationManager
-// ================================================
+// ── models.js — Класи предметної області (Крок 4 методички) ──
 
-
-// ---- Клас окремої події ----
+// Клас однієї події
 class Event {
   constructor({ id = null, title, date, time, type = 'study', location, description = '' }) {
-    this.id          = id || 'evt_' + Date.now();
+    this.id          = id || 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
     this.title       = title.trim();
     this.date        = date.trim();
     this.time        = time.trim();
@@ -16,119 +12,79 @@ class Event {
     this.description = description.trim();
   }
 
-  // Мітка типу українською
   getTypeLabel() {
-    const labels = { study: 'Навчання', work: 'Робота', personal: 'Особисте', leisure: 'Відпочинок' };
-    return labels[this.type] || this.type;
+    return { study: '📚 Навчання', work: '💼 Робота', personal: '🙂 Особисте', leisure: '🎉 Відпочинок' }[this.type] || this.type;
   }
 
-  // Date-об'єкт для сортування
-  getDateTime() {
-    return new Date(`${this.date}T${this.time}`);
-  }
+  toDate() { return new Date(`${this.date}T${this.time}`); }
 }
 
 
-// ---- Менеджер колекції подій (CRUD + пошук/фільтр/сортування) ----
+// Менеджер колекції: CRUD + пошук / фільтр / сортування
 class EventPlanner {
-  constructor(storageKey = 'tvr_events_v17') {
-    this.storageKey = storageKey;
+  constructor(key = 'tvr_events_v17') {
+    this.key   = key;
     this.items = [];
-    this.loadFromStorage();
+    this._load();
   }
 
-  // Завантаження з localStorage (JSON.parse)
-  loadFromStorage() {
+  // Завантаження з localStorage (JSON.parse — Крок 6)
+  _load() {
     try {
-      const raw = localStorage.getItem(this.storageKey);
-      if (raw) {
-        const data = JSON.parse(raw);
-        if (Array.isArray(data)) {
-          this.items = data.map(obj => new Event(obj));
-        }
-      }
-    } catch (e) {
-      this.items = [];
-    }
+      const raw = localStorage.getItem(this.key);
+      if (raw) this.items = JSON.parse(raw).map(o => new Event(o));
+    } catch { this.items = []; }
   }
 
-  // Збереження в localStorage (JSON.stringify)
-  saveToStorage() {
-    localStorage.setItem(this.storageKey, JSON.stringify(this.items));
-  }
+  // Збереження (JSON.stringify — Крок 6)
+  _save() { localStorage.setItem(this.key, JSON.stringify(this.items)); }
 
-  // Додати подію
-  add(data) {
-    const event = new Event(data);
-    this.items.push(event);
-    this.saveToStorage();
-    return event;
-  }
-
-  // Оновити подію за id
+  add(data)        { const e = new Event(data); this.items.push(e); this._save(); return e; }
+  remove(id)       { this.items = this.items.filter(e => e.id !== id); this._save(); }
+  getById(id)      { return this.items.find(e => e.id === id) || null; }
   update(id, data) {
     const i = this.items.findIndex(e => e.id === id);
     if (i === -1) return null;
     this.items[i] = new Event({ id, ...data });
-    this.saveToStorage();
+    this._save();
     return this.items[i];
   }
 
-  // Видалити подію за id
-  remove(id) {
-    this.items = this.items.filter(e => e.id !== id);
-    this.saveToStorage();
-  }
-
-  // Знайти за id
-  getById(id) {
-    return this.items.find(e => e.id === id) || null;
-  }
-
-  // Пошук (RegExp), фільтр за типом, сортування
+  // Пошук RegExp + фільтр + сортування (Крок 9)
   getFiltered({ query = '', type = 'all', sortBy = 'date-asc' } = {}) {
-    let result = [...this.items];
+    let list = [...this.items];
 
-    // Живий пошук — new RegExp(query, 'i') (Крок 9 методички)
     if (query.trim()) {
-      const re = new RegExp(query.trim(), 'i');
-      result = result.filter(e => re.test(e.title) || re.test(e.location));
+      const re = new RegExp(query.trim(), 'i');         // new RegExp(query, 'i')
+      list = list.filter(e => re.test(e.title) || re.test(e.location));
     }
 
-    // Фільтр за типом
-    if (type !== 'all') {
-      result = result.filter(e => e.type === type);
-    }
+    if (type !== 'all') list = list.filter(e => e.type === type);
 
-    // Сортування
-    result.sort((a, b) => {
-      if (sortBy === 'date-asc')  return a.getDateTime() - b.getDateTime();
-      if (sortBy === 'date-desc') return b.getDateTime() - a.getDateTime();
-      if (sortBy === 'title-asc') return a.title.localeCompare(b.title, 'uk');
-      return 0;
-    });
+    list.sort((a, b) =>
+      sortBy === 'date-desc' ? b.toDate() - a.toDate() :
+      sortBy === 'title-asc' ? a.title.localeCompare(b.title, 'uk') :
+      a.toDate() - b.toDate()
+    );
 
-    return result;
+    return list;
   }
 }
 
 
-// ---- Toast-сповіщення (setTimeout) ----
+// Toast-сповіщення (Варіант 17: setTimeout)
 class NotificationManager {
-  constructor(containerId = 'toast-container') {
-    this.container = document.getElementById(containerId);
+  constructor(id = 'toasts') { this.el = document.getElementById(id); }
+
+  show(msg, type = 'info', ms = 3000) {
+    const t = document.createElement('div');
+    t.className = `toast toast-${type}`;
+    t.textContent = msg;
+    this.el.appendChild(t);
+    setTimeout(() => t.remove(), ms);
   }
 
-  show(message, type = 'info', duration = 3000) {
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    this.container.appendChild(toast);
-
-    setTimeout(() => toast.remove(), duration);
-  }
-
-  success(msg) { this.show(msg, 'success'); }
-  error(msg)   { this.show(msg, 'error', 4000); }
-  info(msg)    { this.show(msg, 'info'); }
+  success(m) { this.show(m, 'success'); }
+  error(m)   { this.show(m, 'error', 4000); }
+  info(m)    { this.show(m, 'info'); }
 }

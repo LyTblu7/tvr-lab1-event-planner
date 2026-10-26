@@ -1,357 +1,265 @@
-/**
- * app.js — Головна логіка застосунку «Планувальник подій» (Варіант 17).
- * Відповідає вимогам розділу 1.4.2 (Кроки 1–10) та розділу 1.7 методички ТВР.
- */
+// ================================================
+// app.js — Логіка інтерфейсу «Планувальник подій»
+// Кроки 1–10 розділу 1.4.2 методички ТВР
+// ================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. Ініціалізація менеджерів (Крок 4)
-  const planner = new EventPlanner('tvr_events_v17_hub');
-  const notifier = new NotificationManager('#toast-container');
 
-  // 2. Пошук елементів у DOM (Контрольне питання №6: getElementById, querySelector)
-  const eventsList = document.querySelector('#events-list');
-  const searchInput = document.getElementById('search-input');
-  const filterType = document.getElementById('filter-type');
-  const sortBy = document.getElementById('sort-by');
+  // --- Ініціалізація (Крок 4) ---
+  const planner  = new EventPlanner('tvr_events_v17');
+  const notifier = new NotificationManager('toast-container');
 
-  // Елементи форми (Крок 2, 5)
-  const eventForm = document.getElementById('event-form');
-  const formHeading = document.getElementById('form-heading');
-  const formSubmitBtn = document.getElementById('form-submit-btn');
-  const formCancelBtn = document.getElementById('form-cancel-btn');
+  // --- Елементи форми ---
+  const form       = document.getElementById('event-form');
+  const formTitle  = document.getElementById('form-title');
+  const btnSubmit  = document.getElementById('btn-submit');
+  const btnCancel  = document.getElementById('btn-cancel');
 
-  // Поля вводу форми (Контрольне питання №8: читання через .value)
-  const inputTitle = document.getElementById('event-title');
-  const inputDate = document.getElementById('event-date');
-  const inputTime = document.getElementById('event-time');
-  const selectType = document.getElementById('event-type');
-  const inputLocation = document.getElementById('event-location');
-  const inputDescription = document.getElementById('event-description');
+  const inpTitle    = document.getElementById('inp-title');
+  const inpDate     = document.getElementById('inp-date');
+  const inpTime     = document.getElementById('inp-time');
+  const inpType     = document.getElementById('inp-type');
+  const inpLocation = document.getElementById('inp-location');
+  const inpDesc     = document.getElementById('inp-desc');
 
-  // Стан поточного редагування (Контрольне питання №5: змінна let)
+  // --- Елементи пошуку / фільтрів ---
+  const inpSearch = document.getElementById('inp-search');
+  const selType   = document.getElementById('sel-type');
+  const selSort   = document.getElementById('sel-sort');
+
+  // --- Контейнер списку ---
+  const eventsList = document.getElementById('events-list');
+
+  // Поточний id редагованої події (null = режим створення)
   let editingId = null;
 
-  // ==============================================================
-  // 3. ВАЛІДАЦІЯ ФОРМИ (Крок 5, Контрольні питання №12, №13)
-  // Регулярні вирази: перевірка дати, часу, обов'язкових полів через .test()
-  // ==============================================================
-  const patterns = {
-    // Дата: YYYY-MM-DD (4 цифри року, 01-12 місяць, 01-31 день)
-    date: /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/,
-    // Час: HH:MM від 00:00 до 23:59
-    time: /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/,
-    // Назва: від 3 до 80 символів
-    title: /^.{3,80}$/,
-    // Локація: від 2 до 80 символів
-    location: /^.{2,80}$/
+
+  // ================================================
+  // ВАЛІДАЦІЯ (Крок 5 методички)
+  // RegExp для дати та часу, перевірка через .test()
+  // ================================================
+  const PATTERNS = {
+    title:    /^.{3,80}$/,
+    date:     /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/,
+    time:     /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/,
+    location: /^.{2,80}$/,
   };
 
-  /**
-   * Валідація окремого поля з додаванням/видаленням класу .invalid (Крок 3, 5)
-   * @param {HTMLInputElement|HTMLSelectElement} input
-   * @param {string} fieldName
-   * @returns {boolean}
-   */
-  function validateField(input, fieldName) {
-    const value = input.value.trim(); // Контрольне питання №8: читання .value
-    const errorEl = document.getElementById(`${input.id}-error`);
-    let isValid = true;
-    let message = '';
+  const ERROR_MESSAGES = {
+    title:    'Назва: від 3 до 80 символів.',
+    date:     'Формат дати: РРРР-ММ-ДД.',
+    time:     'Формат часу: ГГ:ХХ (00:00–23:59).',
+    location: 'Місце: від 2 до 80 символів.',
+  };
 
-    if (!value) {
-      isValid = false;
-      message = "Поле обов'язкове для заповнення.";
-    } else if (fieldName === 'date' && !patterns.date.test(value)) {
-      // Контрольне питання №12: метод test() регулярного виразу
-      isValid = false;
-      message = 'Формат дати має бути РРРР-ММ-ДД (напр., 2026-10-15).';
-    } else if (fieldName === 'time' && !patterns.time.test(value)) {
-      isValid = false;
-      message = 'Формат часу має бути ГГ:ХХ від 00:00 до 23:59.';
-    } else if (fieldName === 'title' && !patterns.title.test(value)) {
-      isValid = false;
-      message = 'Назва повинна містити від 3 до 80 символів.';
-    } else if (fieldName === 'location' && !patterns.location.test(value)) {
-      isValid = false;
-      message = 'Вкажіть місце (від 2 до 80 символів).';
-    }
+  // Перевірка одного поля — додає/знімає клас .invalid
+  function validateField(input, name) {
+    const value  = input.value.trim();
+    const errEl  = document.getElementById('err-' + name);
+    const valid  = value !== '' && PATTERNS[name].test(value);
 
-    if (!isValid) {
-      input.classList.add('invalid');
-      if (errorEl) {
-        errorEl.textContent = message; // Контрольне питання №8: безпечний textContent
-        errorEl.classList.add('show');
-      }
+    if (valid) {
+      input.classList.remove('invalid');
+      if (errEl) { errEl.textContent = ''; errEl.classList.remove('show'); }
     } else {
-      input.classList.remove('invalid');
-      if (errorEl) {
-        errorEl.textContent = '';
-        errorEl.classList.remove('show');
-      }
+      input.classList.add('invalid');
+      if (errEl) { errEl.textContent = ERROR_MESSAGES[name] || ''; errEl.classList.add('show'); }
     }
 
-    return isValid;
+    return valid;
   }
 
-  function clearErrors() {
-    [inputTitle, inputDate, inputTime, inputLocation].forEach(input => {
-      input.classList.remove('invalid');
-      const err = document.getElementById(`${input.id}-error`);
-      if (err) {
-        err.textContent = '';
-        err.classList.remove('show');
-      }
-    });
-  }
+  // Жива валідація під час набору (подія input)
+  inpTitle.addEventListener('input',    () => validateField(inpTitle,    'title'));
+  inpDate.addEventListener('input',     () => validateField(inpDate,     'date'));
+  inpTime.addEventListener('input',     () => validateField(inpTime,     'time'));
+  inpLocation.addEventListener('input', () => validateField(inpLocation, 'location'));
 
-  // Жива валідація на подію input під час набору
-  inputTitle.addEventListener('input', () => validateField(inputTitle, 'title'));
-  inputDate.addEventListener('input', () => validateField(inputDate, 'date'));
-  inputTime.addEventListener('input', () => validateField(inputTime, 'time'));
-  inputLocation.addEventListener('input', () => validateField(inputLocation, 'location'));
 
-  // ==============================================================
-  // 4. ДИНАМІЧНИЙ РЕНДЕРИНГ СПИСКУ (Крок 7, Контрольні питання №7, 8)
-  // ==============================================================
+  // ================================================
+  // РЕНДЕРИНГ СПИСКУ (Крок 7 методички)
+  // createElement, dataset.id, append, DocumentFragment
+  // ================================================
   function render(items) {
-    // Контрольне питання №8: повне очищення вмісту через innerHTML = ""
+    // Очищення контейнера (Крок 7)
     eventsList.innerHTML = '';
 
     if (items.length === 0) {
       eventsList.innerHTML = `
         <div class="empty-state">
           <h3>Список подій порожній</h3>
-          <p>У вас ще немає доданих подій. Заповніть форму ліворуч, щоб створити перший запис.</p>
-        </div>
-      `;
+          <p>Заповніть форму ліворуч і натисніть «Створити подію».</p>
+        </div>`;
       return;
     }
 
-    // Контрольне питання №7: створення DocumentFragment для оптимізації DOM
+    // DocumentFragment — вставляємо всі картки за один раз (Крок 7)
     const fragment = document.createDocumentFragment();
 
     items.forEach(item => {
-      const dateParts = item.getDateParts();
-
-      // Контрольне питання №7: метод createElement()
-      const card = document.createElement('article');
-      const monthNum = parseInt(item.date.split('-')[1], 10) || 1;
-      card.className = `entity-item event-card card-theme-${item.type}`;
-      card.setAttribute('data-month', monthNum);
-      // Крок 7 методички: зв'язок елемента через dataset.id
-      card.dataset.id = item.id;
+      const card = document.createElement('article'); // Крок 7: createElement
+      card.className   = 'event-card';
+      card.dataset.id  = item.id;            // Крок 7: dataset.id
+      card.dataset.type = item.type;
 
       card.innerHTML = `
-        <!-- Блок дати (місяць, день, час) -->
-        <div class="event-date-box">
-          <span class="date-month">${dateParts.month}</span>
-          <span class="date-day">${dateParts.day}</span>
-          <span class="date-time">${item.time}</span>
+        <div class="card-btns">
+          <button class="btn-edit">Ред.</button>
+          <button class="btn-delete">Вид.</button>
         </div>
-
-        <!-- Блок інформації про подію -->
-        <div class="event-content-box">
-          <div>
-            <div class="card-top">
-              <h3 class="event-title">${escapeHTML(item.title)}</h3>
-              <div class="card-actions">
-                <button type="button" class="btn-icon edit-btn" title="Редагувати" aria-label="Редагувати">
-                  <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 20h9"></path>
-                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                  </svg>
-                </button>
-                <button type="button" class="btn-icon delete-btn" title="Видалити" aria-label="Видалити">
-                  <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <span class="badge-tag">${item.getTypeLabel()}</span>
-          </div>
-
-          <div class="card-bottom">
-            <div class="event-location">
-              <svg class="icon-svg location-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                <circle cx="12" cy="10" r="3"></circle>
-              </svg>
-              <span>${escapeHTML(item.location)}</span>
-            </div>
-          </div>
-        </div>
+        <h3>${escapeHTML(item.title)}</h3>
+        <p class="meta">📅 ${item.date} о ${item.time}</p>
+        <p class="meta">📍 ${escapeHTML(item.location)}</p>
+        ${item.description ? `<p class="meta">${escapeHTML(item.description)}</p>` : ''}
+        <span class="badge">${item.getTypeLabel()}</span>
       `;
 
-      fragment.append(card); // Крок 7: append()
+      fragment.append(card);  // Крок 7: append
     });
 
     eventsList.append(fragment);
   }
 
+  // Екранування спеціальних символів (захист від XSS)
   function escapeHTML(str) {
-    if (!str) return '';
-    return str
+    return String(str)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+      .replace(/"/g, '&quot;');
   }
 
-  // ==============================================================
-  // 5. ДЕЛЕГУВАННЯ ПОДІЙ (Крок 8, Контрольні питання №9, №10)
-  // Обробник на спільному контейнері з event.target.closest()
-  // ==============================================================
-  eventsList.addEventListener('click', (event) => {
-    // Контрольне питання №10: пошук цільових кнопок через closest()
-    const deleteBtn = event.target.closest('.delete-btn');
-    const editBtn = event.target.closest('.edit-btn');
 
-    if (!deleteBtn && !editBtn) return;
-
-    const card = event.target.closest('.entity-item');
+  // ================================================
+  // ДЕЛЕГУВАННЯ ПОДІЙ (Крок 8 методички)
+  // Один обробник на контейнер — event.target.closest()
+  // ================================================
+  eventsList.addEventListener('click', (e) => {
+    const card = e.target.closest('.event-card');
     if (!card) return;
-    const id = card.dataset.id;
+
+    const id   = card.dataset.id;
     const item = planner.getById(id);
     if (!item) return;
 
-    // 1) Видалення (Крок 8 методички)
-    if (deleteBtn) {
-      if (confirm(`Ви дійсно бажаєте видалити подію «${item.title}»?`)) {
+    // Видалити
+    if (e.target.closest('.btn-delete')) {
+      if (confirm(`Видалити подію «${item.title}»?`)) {
         planner.remove(id);
-        notifier.info(`Подію «${item.title}» видалено.`); // Варіант 17: Toast
         if (editingId === id) resetForm();
         updateUI();
+        notifier.info(`Подію «${item.title}» видалено.`);
       }
       return;
     }
 
-    // 2) Редагування
-    if (editBtn) {
+    // Редагувати
+    if (e.target.closest('.btn-edit')) {
       startEdit(item);
     }
   });
 
-  // Перехід у режим редагування
-  function startEdit(item) {
-    editingId = item.id;
-    formHeading.textContent = 'Редагувати подію';
-    formSubmitBtn.textContent = 'Зберегти зміни';
-    formCancelBtn.style.display = 'inline-block';
 
-    inputTitle.value = item.title;
-    inputDate.value = item.date;
-    inputTime.value = item.time;
-    selectType.value = item.type;
-    inputLocation.value = item.location;
-    inputDescription.value = item.description || '';
+  // ================================================
+  // SUBMIT ФОРМИ (Крок 5, 6, КП №11)
+  // event.preventDefault() — скасовуємо перезавантаження
+  // ================================================
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();  // КП №11: обов'язковий виклик
 
-    clearErrors();
-    eventForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    inputTitle.focus();
-  }
+    // Перевіряємо всі поля
+    const ok =
+      validateField(inpTitle,    'title') &
+      validateField(inpDate,     'date')  &
+      validateField(inpTime,     'time')  &
+      validateField(inpLocation, 'location');
 
-  // Скидання форми у початковий стан створення
-  function resetForm() {
-    editingId = null;
-    formHeading.textContent = 'Додати подію';
-    formSubmitBtn.textContent = 'Створити подію';
-    formCancelBtn.style.display = 'none';
-    eventForm.reset();
-    clearErrors();
-  }
-
-  formCancelBtn.addEventListener('click', resetForm);
-
-  // ==============================================================
-  // 6. ОБРОБКА ВІДПРАВЛЕННЯ ФОРМИ (Крок 5, 6, Контрольне питання №11)
-  // ==============================================================
-  eventForm.addEventListener('submit', (event) => {
-    // Контрольне питання №11: обов'язковий виклик preventDefault()
-    // щоб запобігти перезавантаженню сторінки
-    event.preventDefault();
-
-    const isTitleValid = validateField(inputTitle, 'title');
-    const isDateValid = validateField(inputDate, 'date');
-    const isTimeValid = validateField(inputTime, 'time');
-    const isLocationValid = validateField(inputLocation, 'location');
-
-    if (!isTitleValid || !isDateValid || !isTimeValid || !isLocationValid) {
-      notifier.error('Будь ласка, виправте виявлені помилки у формі.');
+    if (!ok) {
+      notifier.error('Виправте помилки у формі.');
       return;
     }
 
-    const formData = {
-      title: inputTitle.value,
-      date: inputDate.value,
-      time: inputTime.value,
-      type: selectType.value,
-      location: inputLocation.value,
-      description: inputDescription.value
+    const data = {
+      title:       inpTitle.value,
+      date:        inpDate.value,
+      time:        inpTime.value,
+      type:        inpType.value,
+      location:    inpLocation.value,
+      description: inpDesc.value,
     };
 
     if (editingId) {
-      planner.update(editingId, formData);
-      notifier.success(`Подію «${formData.title}» успішно оновлено!`);
+      planner.update(editingId, data);
+      notifier.success(`Подію «${data.title}» оновлено!`);
     } else {
-      planner.add(formData); // Крок 6: збереження у масив та localStorage
-      notifier.success(`Подію «${formData.title}» успішно створено!`);
+      planner.add(data);
+      notifier.success(`Подію «${data.title}» створено!`);
     }
 
     resetForm();
     updateUI();
   });
 
-  // ==============================================================
-  // 7. ПОШУК ТА ФІЛЬТРАЦІЯ (Крок 9, Контрольні питання №9, 12)
-  // ==============================================================
+
+  // ================================================
+  // ПОШУК, ФІЛЬТР, СОРТУВАННЯ (Крок 9 методички)
+  // ================================================
   function updateUI() {
-    const filtered = planner.getFiltered({
-      query: searchInput.value,
-      type: filterType.value,
-      sortBy: sortBy.value
+    const items = planner.getFiltered({
+      query:  inpSearch.value,
+      type:   selType.value,
+      sortBy: selSort.value,
     });
-    render(filtered);
+    render(items);
   }
 
-  searchInput.addEventListener('input', updateUI);
-  filterType.addEventListener('change', updateUI);
-  sortBy.addEventListener('change', updateUI);
+  // Живий пошук на події input
+  inpSearch.addEventListener('input', updateUI);
+  selType.addEventListener('change',  updateUI);
+  selSort.addEventListener('change',  updateUI);
 
-  // Первинний рендеринг при завантаженні (Крок 7)
+
+  // ================================================
+  // РЕДАГУВАННЯ / СКИДАННЯ ФОРМИ
+  // ================================================
+  function startEdit(item) {
+    editingId = item.id;
+    formTitle.textContent    = 'Редагувати подію';
+    btnSubmit.textContent    = 'Зберегти зміни';
+    btnCancel.style.display  = 'inline-block';
+
+    inpTitle.value    = item.title;
+    inpDate.value     = item.date;
+    inpTime.value     = item.time;
+    inpType.value     = item.type;
+    inpLocation.value = item.location;
+    inpDesc.value     = item.description;
+
+    form.scrollIntoView({ behavior: 'smooth' });
+    inpTitle.focus();
+  }
+
+  function resetForm() {
+    editingId = null;
+    formTitle.textContent   = 'Додати подію';
+    btnSubmit.textContent   = 'Створити подію';
+    btnCancel.style.display = 'none';
+    form.reset();
+
+    // Зняти класи помилок
+    [inpTitle, inpDate, inpTime, inpLocation].forEach(inp => {
+      inp.classList.remove('invalid');
+    });
+    document.querySelectorAll('.error').forEach(el => {
+      el.textContent = '';
+      el.classList.remove('show');
+    });
+  }
+
+  btnCancel.addEventListener('click', resetForm);
+
+
+  // --- Перший рендеринг при завантаженні (Крок 7) ---
   updateUI();
 
-  // Допоміжний механізм сценаріїв для тестування та фіксації станів інтерфейсу для звіту
-  const urlParams = new URLSearchParams(window.location.search);
-  const scenario = urlParams.get('scenario');
-  if (scenario === 'valid') {
-    inputTitle.value = 'Захист лабораторної роботи №1 з ТВР';
-    inputDate.value = '2026-10-15';
-    inputTime.value = '14:30';
-    selectType.value = 'study';
-    inputLocation.value = 'ХНУРЕ, ауд. 312';
-    inputDescription.value = 'Підготовка демонстрації функціоналу та захист перед викладачем.';
-  } else if (scenario === 'invalid') {
-    inputTitle.value = 'А';
-    inputDate.value = '';
-    inputTime.value = '';
-    inputLocation.value = '';
-    validateField(inputTitle, 'title');
-    validateField(inputDate, 'date');
-    validateField(inputTime, 'time');
-    validateField(inputLocation, 'location');
-    notifier.error('Будь ласка, виправте виявлені помилки у формі.');
-  } else if (scenario === 'filter') {
-    filterType.value = 'study';
-    updateUI();
-  } else if (scenario === 'search') {
-    searchInput.value = 'Workshop';
-    updateUI();
-  } else if (scenario === 'toast') {
-    notifier.success('Подію «Захист лабораторної роботи №1 з ТВР» успішно створено!');
-  }
 });

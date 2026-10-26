@@ -3,173 +3,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Планувальник подій • Лабораторна робота №1 (Варіант 17)</title>
+  <title>Планувальник подій — ТВР ЛБ1 Варіант 17</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- 1. Семантичний тег <header> (Крок 2 методички) -->
-  <header class="site-header">
-    <div class="header-container">
-      <h1 class="app-title">Планувальник <span class="app-accent">подій</span></h1>
-      <span class="app-subtitle">ЛБ1 ТВР • Варіант 17 • Чекавий Р. С. (КІУКІ-23-7)</span>
-    </div>
+  <header>
+    <h1>Планувальник подій</h1>
+    <p>ТВР ЛБ1 · Варіант 17 · Чекавий Р.С. (КІУКІ-23-7)</p>
   </header>
 
-  <!-- 2. Семантичний тег <main> -->
-  <main class="main-layout">
-    
-    <!-- 3. Форма додавання та редагування події (Крок 2, 5 методички) -->
+  <main>
+
+    <!-- ФОРМА ДОДАВАННЯ / РЕДАГУВАННЯ -->
     <section class="form-section">
-      <div class="card form-card">
-        <h2 class="section-title" id="form-heading">Додати подію</h2>
-        
-        <form id="event-form" novalidate>
-          <!-- Назва події -->
+      <h2 id="form-title">Додати подію</h2>
+
+      <form id="event-form" novalidate>
+
+        <div class="form-group">
+          <label for="inp-title">Назва *</label>
+          <input type="text" id="inp-title" placeholder="напр. Захист лабораторної роботи">
+          <span class="error" id="err-title"></span>
+        </div>
+
+        <div class="form-row">
           <div class="form-group">
-            <label for="event-title" class="form-label">Назва події *</label>
-            <input 
-              type="text" 
-              id="event-title" 
-              name="title" 
-              class="form-input" 
-              placeholder="напр., Консультація до іспиту" 
-              required
-            >
-            <span class="field-error-text" id="event-title-error"></span>
+            <label for="inp-date">Дата *</label>
+            <input type="date" id="inp-date">
+            <span class="error" id="err-date"></span>
           </div>
-
-          <!-- Дата та час -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="event-date" class="form-label">Дата (РРРР-ММ-ДД) *</label>
-              <input 
-                type="date" 
-                id="event-date" 
-                name="date" 
-                class="form-input" 
-                required
-              >
-              <span class="field-error-text" id="event-date-error"></span>
-            </div>
-
-            <div class="form-group">
-              <label for="event-time" class="form-label">Час (ГГ:ХХ) *</label>
-              <input 
-                type="time" 
-                id="event-time" 
-                name="time" 
-                class="form-input" 
-                required
-              >
-              <span class="field-error-text" id="event-time-error"></span>
-            </div>
-          </div>
-
-          <!-- Тип події та місце -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="event-type" class="form-label">Тип події *</label>
-              <select id="event-type" name="type" class="form-input" required>
-                <option value="study">Навчання</option>
-                <option value="work">Робота</option>
-                <option value="personal">Особисте</option>
-                <option value="leisure">Відпочинок</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="event-location" class="form-label">Місце проведення *</label>
-              <input 
-                type="text" 
-                id="event-location" 
-                name="location" 
-                class="form-input" 
-                placeholder="напр., ХНУРЕ, ауд. 312 або Онлайн" 
-                required
-              >
-              <span class="field-error-text" id="event-location-error"></span>
-            </div>
-          </div>
-
-          <!-- Опис події -->
           <div class="form-group">
-            <label for="event-description" class="form-label">Опис події</label>
-            <textarea 
-              id="event-description" 
-              name="description" 
-              class="form-input form-textarea" 
-              placeholder="Короткі нотатки або коментар..."
-            ></textarea>
+            <label for="inp-time">Час *</label>
+            <input type="time" id="inp-time">
+            <span class="error" id="err-time"></span>
           </div>
+        </div>
 
-          <!-- Кнопки форми -->
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary" id="form-submit-btn">Створити подію</button>
-            <button type="button" class="btn btn-secondary" id="form-cancel-btn" style="display: none;">Скасувати</button>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="inp-type">Тип *</label>
+            <select id="inp-type">
+              <option value="study">Навчання</option>
+              <option value="work">Робота</option>
+              <option value="personal">Особисте</option>
+              <option value="leisure">Відпочинок</option>
+            </select>
           </div>
-        </form>
-      </div>
+          <div class="form-group">
+            <label for="inp-location">Місце *</label>
+            <input type="text" id="inp-location" placeholder="напр. ХНУРЕ, ауд. 312">
+            <span class="error" id="err-location"></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="inp-desc">Опис</label>
+          <textarea id="inp-desc" rows="3" placeholder="Нотатки до події..."></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" id="btn-submit">Створити подію</button>
+          <button type="button" id="btn-cancel" style="display:none">Скасувати</button>
+        </div>
+
+      </form>
     </section>
 
-    <!-- 4. Панель пошуку/фільтрів та контейнер списку подій (Крок 2, 7, 9) -->
-    <section class="events-section">
-      <!-- Панель фільтрації -->
-      <div class="toolbar-box">
-        <div class="search-box">
-          <svg class="search-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input 
-            type="search" 
-            id="search-input" 
-            class="search-input-field" 
-            placeholder="Пошук за назвою або місцем..."
-            aria-label="Пошук подій"
-          >
-        </div>
+    <!-- СПИСОК ПОДІЙ -->
+    <section class="list-section">
 
-        <div class="filter-controls">
-          <!-- Фільтрація за типом (Варіант 17) -->
-          <select id="filter-type" class="dropdown-select" aria-label="Фільтр за типом">
-            <option value="all">Усі типи</option>
-            <option value="study">Навчання</option>
-            <option value="work">Робота</option>
-            <option value="personal">Особисте</option>
-            <option value="leisure">Відпочинок</option>
-          </select>
-
-          <!-- Сортування за датою (Варіант 17) -->
-          <select id="sort-by" class="dropdown-select" aria-label="Сортування за датою">
-            <option value="date-asc">Спочатку найближчі</option>
-            <option value="date-desc">Спочатку пізніші</option>
-            <option value="title-asc">За назвою (А-Я)</option>
-          </select>
-        </div>
+      <!-- Пошук та фільтри -->
+      <div class="controls">
+        <input type="search" id="inp-search" placeholder="Пошук за назвою або місцем...">
+        <select id="sel-type">
+          <option value="all">Усі типи</option>
+          <option value="study">Навчання</option>
+          <option value="work">Робота</option>
+          <option value="personal">Особисте</option>
+          <option value="leisure">Відпочинок</option>
+        </select>
+        <select id="sel-sort">
+          <option value="date-asc">Спочатку найближчі</option>
+          <option value="date-desc">Спочатку пізніші</option>
+          <option value="title-asc">За назвою (А→Я)</option>
+        </select>
       </div>
 
-      <!-- Порожній семантичний контейнер під список записів (Крок 2 методички) -->
-      <div class="events-grid" id="events-list" aria-label="Список запланованих подій">
-        <!-- Картки створюються виключно динамічно через DOM API -->
-      </div>
+      <!-- Контейнер для карток (порожній — наповнюється через JS) -->
+      <div id="events-list"></div>
+
     </section>
 
   </main>
 
-  <!-- 5. Семантичний тег <footer> -->
-  <footer class="site-footer">
-    <div class="footer-container">
-      <p>Кафедра АПОТ, ХНУРЕ • Дисципліна «Технології веб-розробки» (2026/2027 н.р.)</p>
-      <p>Виконав: Чекавий Р. С., група КІУКІ-23-7 • Варіант 17 (Планувальник подій)</p>
-    </div>
+  <footer>
+    <p>Кафедра АПОТ, ХНУРЕ · «Технології веб-розробки» 2026/2027</p>
   </footer>
 
-  <!-- 6. Контейнер для спливаючих сповіщень (Toast) — Варіант 17 -->
-  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+  <!-- Toast-сповіщення -->
+  <div id="toast-container"></div>
 
-  <!-- Підключення скриптів за методичкою (Крок 1) -->
-  <script defer src="models.js"></script>
-  <script defer src="app.js"></script>
+  <script src="models.js" defer></script>
+  <script src="app.js" defer></script>
+
 </body>
 </html>

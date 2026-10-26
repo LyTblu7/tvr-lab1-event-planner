@@ -152,7 +152,7 @@ button {
   gap: 6px;
   transition: box-shadow .2s;
 }
-.card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.10); }
+
 
 .card-head {
   display: flex;

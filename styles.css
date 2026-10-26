@@ -21,7 +21,6 @@ body {
   gap: 16px;
 }
 .header h1 { font-size: 20px; font-weight: 700; }
-.header span { font-size: 12px; opacity: .75; }
 
 /* ── Layout: sidebar + content (Flexbox — Крок 3) ── */
 .layout {
@@ -147,19 +146,13 @@ button {
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 1px 4px rgba(0,0,0,.07);
-  border-top: 3px solid #1d4ed8;
+  border: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   gap: 6px;
   transition: box-shadow .2s;
 }
-.card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.12); }
-
-/* Кольори верхньої межі залежно від типу */
-.card[data-type="study"]   { border-top-color: #1d4ed8; }
-.card[data-type="work"]    { border-top-color: #16a34a; }
-.card[data-type="personal"]{ border-top-color: #f59e0b; }
-.card[data-type="leisure"] { border-top-color: #e11d48; }
+.card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.10); }
 
 .card-head {
   display: flex;
@@ -243,16 +236,6 @@ button {
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Footer ── */
-footer {
-  text-align: center;
-  padding: 16px;
-  font-size: 12px;
-  color: #9ca3af;
-  border-top: 1px solid #e5e7eb;
-  margin-top: auto;
 }
 
 /* ── Адаптивність (Крок 3 методички) ── */

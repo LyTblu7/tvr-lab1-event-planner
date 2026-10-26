@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     list.innerHTML = '';  // очищення списку (КП №8)
 
     if (!items.length) {
-      list.innerHTML = `<div class="empty"><h3>📋 Список порожній</h3><p>Заповніть форму ліворуч і натисніть «Створити подію».</p></div>`;
+      list.innerHTML = `<div class="empty"><h3>Список порожній</h3><p>Заповніть форму ліворуч і натисніть «Створити подію».</p></div>`;
       return;
     }
 
@@ -80,8 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="btn-delete">Вид.</button>
           </div>
         </div>
-        <div class="card-meta">📅 ${item.date} &nbsp; 🕐 ${item.time}</div>
-        <div class="card-meta">📍 ${esc(item.location)}</div>
+        <div class="card-meta">${item.date} &nbsp; ${item.time}</div>
+        <div class="card-meta">${esc(item.location)}</div>
         ${ item.description ? `<div class="card-desc">${esc(item.description)}</div>` : '' }
         <span class="badge">${item.getTypeLabel()}</span>
       `;

@@ -13,7 +13,7 @@ class Event {
   }
 
   getTypeLabel() {
-    return { study: '📚 Навчання', work: '💼 Робота', personal: '🙂 Особисте', leisure: '🎉 Відпочинок' }[this.type] || this.type;
+    return { study: 'Навчання', work: 'Робота', personal: 'Особисте', leisure: 'Відпочинок' }[this.type] || this.type;
   }
 
   toDate() { return new Date(`${this.date}T${this.time}`); }

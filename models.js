@@ -1,13 +1,13 @@
 /**
- * models.js — Моделі даних та бізнес-логіка планувальника подій
+ * models.js — Класи за вимогами методички (Варіант 17):
+ * 1. Event — сутність події
+ * 2. EventPlanner — менеджер колекції (CRUD, збереження, фільтрація)
+ * 3. NotificationManager — спливаючі сповіщення (Toast)
  */
 
-/**
- * Сутність однієї події
- */
 class Event {
   constructor({ id = null, title, date, time, type = 'study', location, description = '' }) {
-    this.id          = id || 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    this.id          = id || String(Date.now());
     this.title       = title.trim();
     this.date        = date.trim();
     this.time        = time.trim();
@@ -16,118 +16,127 @@ class Event {
     this.description = description.trim();
   }
 
+  // Назва категорії українською для відображення на картці
   getTypeLabel() {
-    return {
+    const labels = {
       study: 'Навчання',
       work: 'Робота',
       personal: 'Особисте',
       leisure: 'Відпочинок'
-    }[this.type] || this.type;
+    };
+    return labels[this.type] || 'Подія';
   }
 
+  // Об'єкт дати для зручного сортування
   toDate() {
     return new Date(`${this.date}T${this.time}`);
   }
 }
 
-/**
- * Менеджер колекції подій: CRUD-операції, персистентність у localStorage,
- * фільтрація та сортування даних.
- */
 class EventPlanner {
-  constructor(key = 'tvr_events_v17') {
-    this.key   = key;
+  constructor(storageKey = 'tvr_events_v17') {
+    this.key   = storageKey;
     this.items = [];
-    this._load();
+    this.load();
   }
 
-  /**
-   * Завантаження та десеріалізація даних з локального сховища
-   */
-  _load() {
+  // Зчитування з localStorage
+  load() {
     try {
-      const raw = localStorage.getItem(this.key);
-      if (raw) {
-        this.items = JSON.parse(raw).map(o => new Event(o));
-      }
+      const data = localStorage.getItem(this.key);
+      this.items = data ? JSON.parse(data).map(item => new Event(item)) : [];
     } catch {
       this.items = [];
     }
   }
 
-  /**
-   * Серіалізація та синхронізація поточного стану з localStorage
-   */
-  _save() {
+  // Збереження в localStorage
+  save() {
     localStorage.setItem(this.key, JSON.stringify(this.items));
   }
 
+  // Додавання
   add(data) {
     const event = new Event(data);
     this.items.push(event);
-    this._save();
+    this.save();
     return event;
   }
 
-  remove(id) {
-    this.items = this.items.filter(e => e.id !== id);
-    this._save();
-  }
-
-  getById(id) {
-    return this.items.find(e => e.id === id) || null;
-  }
-
+  // Оновлення
   update(id, data) {
-    const index = this.items.findIndex(e => e.id === id);
+    const index = this.items.findIndex(item => item.id === id);
     if (index === -1) return null;
     this.items[index] = new Event({ id, ...data });
-    this._save();
+    this.save();
     return this.items[index];
   }
 
-  /**
-   * Отримання відфільтрованого та відсортованого списку подій
-   */
+  // Видалення
+  remove(id) {
+    this.items = this.items.filter(item => item.id !== id);
+    this.save();
+  }
+
+  // Отримання за ID
+  getById(id) {
+    return this.items.find(item => item.id === id) || null;
+  }
+
+  // Пошук, фільтрація та сортування
   getFiltered({ query = '', type = 'all', sortBy = 'date-asc' } = {}) {
-    let list = [...this.items];
+    let result = [...this.items];
 
+    // Пошук регулярним виразом
     if (query.trim()) {
-      const re = new RegExp(query.trim(), 'i');
-      list = list.filter(e => re.test(e.title) || re.test(e.location));
+      const regex = new RegExp(query.trim(), 'i');
+      result = result.filter(item => regex.test(item.title) || regex.test(item.location));
     }
 
+    // Фільтр за типом
     if (type !== 'all') {
-      list = list.filter(e => e.type === type);
+      result = result.filter(item => item.type === type);
     }
 
-    list.sort((a, b) =>
-      sortBy === 'date-desc' ? b.toDate() - a.toDate() :
-      sortBy === 'title-asc' ? a.title.localeCompare(b.title, 'uk') :
-      a.toDate() - b.toDate()
-    );
+    // Сортування
+    result.sort((a, b) => {
+      if (sortBy === 'date-desc') return b.toDate() - a.toDate();
+      if (sortBy === 'title-asc') return a.title.localeCompare(b.title, 'uk');
+      return a.toDate() - b.toDate(); // за замовчуванням: найближчі перші
+    });
 
-    return list;
+    return result;
   }
 }
 
-/**
- * Сервіс спливаючих сповіщень користувача (Toast-повідомлення)
- */
 class NotificationManager {
-  constructor(id = 'toasts') {
-    this.el = document.getElementById(id);
+  constructor(containerId = 'toasts') {
+    this.container = document.getElementById(containerId);
   }
 
-  show(msg, type = 'info', ms = 3000) {
+  // Показ сповіщення (зникає саме через setTimeout або за кліком на хрестик)
+  show(message, type = 'info', duration = 3000) {
+    if (!this.container) return;
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    toast.textContent = msg;
-    this.el.appendChild(toast);
-    setTimeout(() => toast.remove(), ms);
+    toast.innerHTML = `
+      <span>${message}</span>
+      <button type="button" class="toast-close" title="Закрити">&times;</button>
+    `;
+
+    // Закриття за кліком
+    toast.querySelector('.toast-close').addEventListener('click', () => toast.remove());
+
+    this.container.appendChild(toast);
+
+    // Автоматичне зникання через заданий час (вимога методички)
+    setTimeout(() => {
+      if (toast.isConnected) toast.remove();
+    }, duration);
   }
 
-  success(m) { this.show(m, 'success'); }
-  error(m)   { this.show(m, 'error', 4000); }
-  info(m)    { this.show(m, 'info'); }
+  success(msg) { this.show(msg, 'success'); }
+  error(msg)   { this.show(msg, 'error', 4000); }
+  info(msg)    { this.show(msg, 'info'); }
 }

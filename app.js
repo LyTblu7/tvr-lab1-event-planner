@@ -1,14 +1,13 @@
 /**
- * app.js — Головний контролер інтерфейсу користувача та взаємодії з DOM
+ * app.js — Логіка взаємодії з інтерфейсом
  */
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Ініціалізація бізнес-моделей та сервісу сповіщень
   const planner  = new EventPlanner('tvr_events_v17');
   const notifier = new NotificationManager('toasts');
 
-  // Кешування посилань на елементи інтерфейсу
+  // Елементи інтерфейсу
   const form      = document.getElementById('event-form');
   const formTitle = document.getElementById('form-title');
   const btnSubmit = document.getElementById('btn-submit');
@@ -26,10 +25,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const selSort   = document.getElementById('sel-sort');
   const list      = document.getElementById('events-list');
 
-  let editId = null; // Поточний стан форми: null = створення, string = редагування за ID
+  let editId = null; // null = створення нової події, рядок = ID події, яку редагуємо
 
 
-  // ── ПРАВИЛА ВАЛІДАЦІЇ ФОРМИ ───────────────────────────────────────────────
+  // ── ПРАВИЛА ВАЛІДАЦІЇ ──────────────────────────────────────────────────────
   const RULES = {
     'f-title':    { re: /^.{3,80}$/,                                      msg: 'Від 3 до 80 символів.' },
     'f-date':     { re: /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/, msg: 'Формат: РРРР-ММ-ДД.' },
@@ -37,9 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
     'f-location': { re: /^.{2,80}$/,                                      msg: 'Від 2 до 80 символів.' },
   };
 
-  /**
-   * Перевірка валідності конкретного інпуту з динамічним оновленням стилів помилок
-   */
   function check(input) {
     const rule  = RULES[input.id];
     const valid = rule && rule.re.test(input.value.trim());
@@ -53,13 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
     return valid;
   }
 
-  // Інтерактивна валідація під час введення значень
+  // Перевірка при введенні
   [fTitle, fDate, fTime, fLocation].forEach(inp => {
     inp.addEventListener('input', () => check(inp));
   });
 
 
-  // ── ГЕНЕРАЦІЯ ТА РЕНДЕРИНГ КАРТОК У DOM ──────────────────────────────────
+  // ── РЕНДЕРИНГ СПИСКУ ───────────────────────────────────────────────────────
   function render(items) {
     list.innerHTML = '';
 
@@ -72,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Оптимізація пакетної вставки в DOM через DocumentFragment
     const frag = document.createDocumentFragment();
 
     items.forEach(item => {
@@ -101,9 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
     list.append(frag);
   }
 
-  /**
-   * Базове екранування символів для запобігання XSS-ін'єкціям
-   */
   function esc(str) {
     return String(str)
       .replace(/&/g, '&amp;')
@@ -113,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 
-  // ── ДЕЛЕГУВАННЯ ПОДІЙ ДЛЯ КНОПОК КАРТОК ────────────────────────────────────
+  // ── ДЕЛЕГУВАННЯ ПОДІЙ (КЛІКИ НА КАРТКАХ) ───────────────────────────────────
   list.addEventListener('click', e => {
     const card = e.target.closest('.card');
     if (!card) return;
@@ -122,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const item = planner.getById(id);
     if (!item) return;
 
-    // Обробка видалення події
+    // Видалення
     if (e.target.closest('.btn-delete')) {
       if (confirm(`Видалити подію «${item.title}»?`)) {
         planner.remove(id);
@@ -132,14 +124,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Обробка переходу в режим редагування
+    // Редагування
     if (e.target.closest('.btn-edit')) {
       startEdit(item);
     }
   });
 
 
-  // ── ВІДПРАВКА ТА ОБРОБКА ФОРМИ ─────────────────────────────────────────────
+  // ── ВІДПРАВКА ФОРМИ ────────────────────────────────────────────────────────
   form.addEventListener('submit', e => {
     e.preventDefault();
 
@@ -160,10 +152,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (editId) {
       planner.update(editId, data);
-      notifier.success(`Подію «${data.title}» успішно оновлено!`);
+      notifier.success(`Подію «${data.title}» оновлено!`);
     } else {
       planner.add(data);
-      notifier.success(`Подію «${data.title}» успішно створено!`);
+      notifier.success(`Подію «${data.title}» додано!`);
     }
 
     resetForm();
@@ -171,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
-  // ── СИНХРОНІЗАЦІЯ ІНТЕРФЕЙСУ ТА ФІЛЬТРАЦІЯ ──────────────────────────────────
+  // ── ОНОВЛЕННЯ СПИСКУ (ПОШУК, ФІЛЬТР, СОРТУВАННЯ) ───────────────────────────
   function updateUI() {
     render(planner.getFiltered({
       query:  inpSearch.value,
@@ -185,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
   selSort.addEventListener('change', updateUI);
 
 
-  // ── КЕРУВАННЯ СТАНОМ ФОРМИ (РЕДАГУВАННЯ / СКИДАННЯ) ────────────────────────
+  // ── РЕЖИМИ ФОРМИ ───────────────────────────────────────────────────────────
   function startEdit(item) {
     editId = item.id;
     formTitle.textContent = 'Редагувати подію';
@@ -219,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnCancel.addEventListener('click', resetForm);
 
-  // Початкове завантаження та виведення списку
+  // Перший запуск
   updateUI();
 
 });

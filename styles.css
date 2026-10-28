@@ -22,7 +22,7 @@ body {
 }
 .header h1 { font-size: 20px; font-weight: 700; }
 
-/* ── Layout: sidebar + content (Flexbox — Крок 3) ── */
+/* ── Layout: двоколонкова структура (Flexbox) ── */
 .layout {
   display: flex;
   flex: 1;
@@ -82,7 +82,7 @@ input:focus, select:focus, textarea:focus {
   border-color: #1d4ed8;
 }
 
-/* Клас помилки (Крок 3, 5 методички) */
+/* Індикація помилок валідації полів */
 input.invalid { border-color: #dc2626; background: #fff5f5; }
 
 .err {
@@ -121,7 +121,7 @@ button {
 .toolbar input { flex: 1; min-width: 180px; }
 .toolbar select { width: auto; }
 
-/* ── Events grid (CSS Grid — Крок 3) ── */
+/* ── Сітка карток подій (CSS Grid) ── */
 .events-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -238,7 +238,7 @@ button {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Адаптивність (Крок 3 методички) ── */
+/* ── Адаптивність інтерфейсу (Responsive Layout) ── */
 @media (max-width: 768px) {
   .layout { flex-direction: column; padding: 12px; }
   .sidebar { width: 100%; position: static; }
